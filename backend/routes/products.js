@@ -3,7 +3,7 @@ import supabase from "../config/supabase.js";
 
 const router = express.Router();
 
-// Gets all the products
+// Gets all the products 1
 router.get("/", async (req, res) => {
   const { data, error } = await supabase.from("product").select("*");
 

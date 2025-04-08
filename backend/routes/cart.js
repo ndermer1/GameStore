@@ -2,7 +2,7 @@ import express from "express";
 import supabase from "../config/supabase.js";
 const router = express.Router();
 
-// Add to cart
+// Add to cart 1 
 router.post("/add", async (req, res) => {
   const { session_id, product_id } = req.body;
 
