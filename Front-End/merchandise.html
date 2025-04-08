@@ -1,63 +1,110 @@
+<!DOCTYPE html>
 <html> 
 <head> 
-<title>Game Store</title> 
-<link rel="stylesheet" type="text/css" media="all" href="store.css">
-<link rel="icon" type="image/x-icon" href="img/paw-print.png"> 
+  <title>Game Store</title> 
+  <link rel="stylesheet" type="text/css" media="all" href="store.css">
+  <link rel="icon" type="image/x-icon" href="img/paw-print.png"> 
 </head> 
 <body> 
+  <div id="banner">
+    <div id="header">
+      <h1>Game Store</h1> 
+      <a href="main.html">
+        <h3><img src="img/back-arrow.png" alt="Arrow">Back to Main Page</h3>
+      </a>
+    </div>
+    <div id="header"><h1>Merchandise</h1></div>
+    <div id="userInfo">
+      Enter Phone Number
+      <img src="img/phone.png" alt="Phone" style="width:50px; margin:0"><br><br><br>
+      <a href="cart.html">View Cart</a>
+    </div>
+  </div>
 
-    <div id="banner">
-        <div id="header">
-            <h1>Game Store</h1> 
-            <a href = "main.html"><h3><img src="img/back-arrow.png" alt="Arrow">Back to Main Page</h3></a>
-        </div>
-        <div id="header"><h1>Merchandise</h1></div>
-        <div id="userInfo">
-            Enter Phone Number
-            <img src="img/phone.png" alt="Phone" style="width:50px; margin:0"><br><br><br>
-            <a href = "cart.html">View Cart</a>
-        </div>
+  <div id="samples">
+    <div class="expo">
+      <h2>Pokemon Cards</h2>
+      <h3 id="price-15">$60.00</h3>
+      <div class="expoImg">
+        <div><img src="img/minus.png" alt="Minus" class="minus" data-id="15" style="cursor:pointer" /></div>
+        <div><img src="img/merch/pokemon.png" alt="Game" style="max-width:100%; height:auto" /></div>
+        <div><img src="img/plus.png" alt="Plus" class="plus" data-id="15" style="cursor:pointer" /></div>
+      </div>
     </div>
 
-    <div id="samples">
-        <div class="expo">
-            <h2>Pokemon Cards</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/merch/pokemon.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
-        </div>
-        <div class="expo">
-            <h2>Invincible Funko Pop</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/merch/funkopop.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
-        </div>
-        <div class="expo">
-            <h2>Kirby Plush</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/merch/plush.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
-        </div>
-        <div class="expo">
-            <h2>Legend of Zelda Shirt</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/merch/shirt.webp" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
-        </div>
+    <div class="expo">
+      <h2>Invincible Funko Pop</h2>
+      <h3 id="price-16">$60.00</h3>
+      <div class="expoImg">
+        <div><img src="img/minus.png" alt="Minus" class="minus" data-id="16" style="cursor:pointer" /></div>
+        <div><img src="img/merch/funkopop.png" alt="Game" style="max-width:100%; height:auto" /></div>
+        <div><img src="img/plus.png" alt="Plus" class="plus" data-id="16" style="cursor:pointer" /></div>
+      </div>
     </div>
 
-    
+    <div class="expo">
+      <h2>Kirby Plush</h2>
+      <h3 id="price-17">$60.00</h3>
+      <div class="expoImg">
+        <div><img src="img/minus.png" alt="Minus" class="minus" data-id="17" style="cursor:pointer" /></div>
+        <div><img src="img/merch/plush.png" alt="Game" style="max-width:100%; height:auto" /></div>
+        <div><img src="img/plus.png" alt="Plus" class="plus" data-id="17" style="cursor:pointer" /></div>
+      </div>
+    </div>
+
+    <div class="expo">
+      <h2>Legend of Zelda Shirt</h2>
+      <h3 id="price-18">$60.00</h3>
+      <div class="expoImg">
+        <div><img src="img/minus.png" alt="Minus" class="minus" data-id="18" style="cursor:pointer" /></div>
+        <div><img src="img/merch/shirt.webp" alt="Game" style="max-width:100%; height:auto" /></div>
+        <div><img src="img/plus.png" alt="Plus" class="plus" data-id="18" style="cursor:pointer" /></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function fetchAndUpdatePrice(productId) {
+      const res = await fetch(`http://localhost:4000/api/products/${productId}`);
+      const product = await res.json();
+      if (product.price) {
+        document.getElementById(`price-${productId}`).textContent = `$${product.price.toFixed(2)}`;
+      }
+    }
+
+    window.onload = function () {
+      const productIds = [15, 16, 17, 18];
+      productIds.forEach(id => fetchAndUpdatePrice(id));
+    };
+  </script>
+
+  <script>
+    const sessionId = localStorage.getItem("session_id") || crypto.randomUUID();
+    localStorage.setItem("session_id", sessionId);
+
+    async function updateCart(productId, action) {
+      const endpoint = action === "add" ? "add" : "remove";
+      const res = await fetch(`http://localhost:4000/api/cart/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, product_id: productId }),
+      });
+
+      if (res.ok) {
+        console.log(`Item ${action}ed successfully`);
+      } else {
+        const error = await res.json();
+        console.error("Error updating cart:", error);
+      }
+    }
+
+    document.querySelectorAll(".plus").forEach(btn => {
+      btn.addEventListener("click", () => updateCart(parseInt(btn.dataset.id), "add"));
+    });
+
+    document.querySelectorAll(".minus").forEach(btn => {
+      btn.addEventListener("click", () => updateCart(parseInt(btn.dataset.id), "remove"));
+    });
+  </script>
 </body> 
-</html> 
+</html>
