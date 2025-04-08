@@ -58,3 +58,12 @@ h1{
 h2{
    text-align: center;
 }
+
+input{
+    width:25%;
+    margin-top: 0;
+}
+
+label{
+    margin-bottom: 0;
+}
