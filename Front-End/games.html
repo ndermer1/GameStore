@@ -167,19 +167,36 @@
     const sessionId = localStorage.getItem("session_id") || crypto.randomUUID();
     localStorage.setItem("session_id", sessionId);
 
+    //Fetch productName to display in alerts
+    async function getProductName(productId) {
+      const res = await fetch(`http://localhost:4000/api/products/${productId}`);
+      const product = await res.json();
+      return product.name;
+    }
+
     async function updateCart(productId, action) {
       const endpoint = action === "add" ? "add" : "remove";
       const res = await fetch(`http://localhost:4000/api/cart/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, product_id: productId }),
+        body: JSON.stringify({ session_id: sessionId, product_id: productId}),
       });
 
+      //Name of Product
+      const name = await getProductName(productId);
+
+      //Display alert of product movement from user
       if (res.ok) {
         console.log(`Item ${action}ed successfully`);
+        if(action=="add"){
+          alert(name+" was added to cart.");
+        }else if(action=="remove"){
+          alert(name+ " was removed from cart.");
+        }
       } else {
         const error = await res.json();
         console.error("Error updating cart:", error);
+        alert("Your cart does not contain " + name +".");
       }
     }
 
