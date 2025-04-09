@@ -22,35 +22,106 @@
         color:rgb(119, 136, 153);
         width:80%;
     }
+
+    #cart-container {
+      max-width: 900px;
+      margin: 150px auto 60px;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .cart-item img {
+      width: 100px;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .cart-details {
+      flex-grow: 1;
+      padding: 0 20px;
+    }
+
+    .cart-details h3 {
+      margin: 0 0 10px;
+    }
+
+    .cart-actions {
+      text-align: right;
+    }
+
+    .remove-btn {
+      background: none;
+      color: red;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #cart-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 20px;
+      border-top: 2px solid #ccc;
+    }
+
+    #total-price {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #checkout-btn {
+      padding: 12px 24px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #checkout-btn:hover {
+      background: #45a049;
+    }
 </style>
 </head> 
 <body> 
 
-    <div id="banner">
-        <div id="header">
-            <h1>Game Store</h1> 
-            <a href = "main.html"><h3><img src="img/back-arrow.png" alt="Arrow">Back to Main Page</h3></a>
-        </div>
-        <div id="userInfo">
-            <label for="phoneNum">Enter Phone Number</label>
-            <input type="text" id="phoneNum" name="phoneNum" placeholder="123-123-1234" maxlength="12">
-            <img src="img/phone.png" alt="Phone" style="width:50px; margin:0;"><br><br>
-        </div>
+  <div id="banner">
+    <div id="header">
+      <h1>Panther's Games</h1>
     </div>
+    <div id="header">
+      <h1>Cart</h1>
+    </div>
+    <div id="userInfo">
+      Enter Phone Number
+      <img src="img/phone.png" alt="Phone" style="width:50px; margin:0"><br><br><br>
+      <a href="main.html">Back to Main</a>
+    </div>
+  </div>
+
+  <div id="cart-container">
+    <div id="cart-items">
+      <!-- Items will be rendered here 1-->
+    </div>
+    <div id="cart-summary">
+      <div id="total-price">Total: $0.00</div>
+      <button id="checkout-btn">Checkout</button>
+    </div>
+  </div>
 
     <div id="samples">
-        <div class="expo">
-            <h2 style="margin-bottom: -20%;">Cart</h2>
-            <div>
-                Item 1 x3 ------------------------------------- $250<br>
-                Item 1 x3 ------------------------------------- $250<br>
-                Item 1 x3 ------------------------------------- $250<br>
-                Item 1 x3 ------------------------------------- $250<br>
-                Item 1 x3 ------------------------------------- $250<br>
-                <hr>
-                Total ------------------------------------------$~~~~
-            </div>
-        </div>
         <div class="expo">
             <h2>Enter Payment Information</h2>
 
@@ -67,6 +138,61 @@
         </div>
     </div>
 
+   
     
+    <script>
+      async function fetchCart() {
+        const sessionId = localStorage.getItem("session_id");
+        const res = await fetch(`http://localhost:4000/api/cart/${sessionId}`);
+      
+        if (!res.ok) {
+          const error = await res.json();
+          console.error("Failed to load cart:", error);
+          return;
+        }
+      
+        const cart = await res.json();
+        const container = document.getElementById("cart-items");
+        container.innerHTML = "";
+      
+        let total = 0;
+      
+        for (let item of cart) {
+          const itemTotal = item.product_quantity * item.price;
+          total += itemTotal;
+      
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          div.innerHTML = `
+            <div class="cart-details">
+              <h3>${item.name}</h3>
+              <p>Price: $${item.price.toFixed(2)}</p>
+              <p>Quantity: ${item.product_quantity}</p>
+            </div>
+            <div class="cart-actions">
+              <button class="remove-btn" data-id="${item.product_id}">Remove</button>
+            </div>
+          `;
+          container.appendChild(div);
+        }
+      
+        document.getElementById("total-price").textContent = `Total: $${total.toFixed(2)}`;
+      
+        document.querySelectorAll(".remove-btn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.dataset.id;
+            await fetch("http://localhost:4000/api/cart/remove", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ session_id: sessionId, product_id: parseInt(id) }),
+            });
+            fetchCart();
+          });
+        });
+      }
+      
+      fetchCart();
+      
+        </script>
 </body> 
 </html> 

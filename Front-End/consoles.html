@@ -28,62 +28,108 @@
     <div id="title">Consoles</div>
 
     <div id="samples">
-        <div class="expo">
-            <h2>Playstation 5</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/consoles/ps5.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
+      <div class="expo">
+        <h2>Playstation 5</h2>
+        <h3 id="price-4">$60.00</h3>
+        <div class="expoImg">
+          <div><img src="img/minus.png" alt="Minus" class="minus" data-id="4" style="cursor:pointer" /></div>
+          <div><img src="img/consoles/ps5.png" alt="Game" style="max-width:100%; height:auto" /></div>
+          <div><img src="img/plus.png" alt="Plus" class="plus" data-id="4" style="cursor:pointer" /></div>
         </div>
-        <div class="expo">
-            <h2>Playstation 5 Slim</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/consoles/ps5-slim.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
+      </div>
+  
+      <div class="expo">
+        <h2>Playstation 5 Slim</h2>
+        <h3 id="price-26">$60.00</h3>
+        <div class="expoImg">
+          <div><img src="img/minus.png" alt="Minus" class="minus" data-id="26" style="cursor:pointer" /></div>
+          <div><img src="img/consoles/ps5-slim.png" alt="Game" style="max-width:100%; height:auto" /></div>
+          <div><img src="img/plus.png" alt="Plus" class="plus" data-id="26" style="cursor:pointer" /></div>
         </div>
-        <div class="expo">
-            <h2>Xbox Series X</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/consoles/xbox-series-x.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
+      </div>
+  
+      <div class="expo">
+        <h2>Xbox Series X</h2>
+        <h3 id="price-3">$60.00</h3>
+        <div class="expoImg">
+          <div><img src="img/minus.png" alt="Minus" class="minus" data-id="3" style="cursor:pointer" /></div>
+          <div><img src="img/consoles/xbox-series-x.png" alt="Game" style="max-width:100%; height:auto" /></div>
+          <div><img src="img/plus.png" alt="Plus" class="plus" data-id="3" style="cursor:pointer" /></div>
         </div>
-        <div class="expo">
-            <h2>Xbox Series S</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/consoles/xbox-series-s.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
+      </div>
+  
+      <div class="expo">
+        <h2>Xbox Series S</h2>
+        <h3 id="price-27">$60.00</h3>
+        <div class="expoImg">
+          <div><img src="img/minus.png" alt="Minus" class="minus" data-id="27" style="cursor:pointer" /></div>
+          <div><img src="img/consoles/xbox-series-s.png" alt="Game" style="max-width:100%; height:auto" /></div>
+          <div><img src="img/plus.png" alt="Plus" class="plus" data-id="27" style="cursor:pointer" /></div>
         </div>
-        <div class="expo">
-            <h2>Nintendo Switch</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/consoles/switch.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
+      </div>
+  
+      <div class="expo">
+        <h2>Nintendo Switch</h2>
+        <h3 id="price-24">$60.00</h3>
+        <div class="expoImg">
+          <div><img src="img/minus.png" alt="Minus" class="minus" data-id="24" style="cursor:pointer" /></div>
+          <div><img src="img/consoles/switch.png" alt="Game" style="max-width:100%; height:auto" /></div>
+          <div><img src="img/plus.png" alt="Plus" class="plus" data-id="24" style="cursor:pointer" /></div>
         </div>
-        <div class="expo">
-            <h2>Nintendo Switch OLED</h2>
-            <h3>$60.00</h3>
-            <div class="expoImg">
-                <div><img src="img/minus.png" alt="Game"></div>
-                <div><img src="img/consoles/switch-oled.png" alt="Game"></div>
-                <div><img src="img/plus.png" alt="Game"></div>
-            </div>
+      </div>
+  
+      <div class="expo">
+        <h2>Nintendo Switch OLED</h2>
+        <h3 id="price-2">$60.00</h3>
+        <div class="expoImg">
+          <div><img src="img/minus.png" alt="Minus" class="minus" data-id="2" style="cursor:pointer" /></div>
+          <div><img src="img/consoles/switch-oled.png" alt="Game" style="max-width:100%; height:auto" /></div>
+          <div><img src="img/plus.png" alt="Plus" class="plus" data-id="2" style="cursor:pointer" /></div>
         </div>
+      </div>
     </div>
 
-    
+  <!-- Scripts 1-->
+  <script>
+    async function fetchAndUpdatePrice(productId) {
+      const res = await fetch(`http://localhost:4000/api/products/${productId}`);
+      const product = await res.json();
+      document.getElementById(`price-${productId}`).textContent = `$${product.price.toFixed(2)}`;
+    }
+
+    window.onload = function () {
+      const productIds = [2, 3, 4, 24, 26, 27];
+      productIds.forEach(id => fetchAndUpdatePrice(id));
+    };
+  </script>
+
+  <script>
+    const sessionId = localStorage.getItem("session_id") || crypto.randomUUID();
+    localStorage.setItem("session_id", sessionId);
+
+    async function updateCart(productId, action) {
+      const endpoint = action === "add" ? "add" : "remove";
+      const res = await fetch(`http://localhost:4000/api/cart/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, product_id: productId }),
+      });
+
+      if (res.ok) {
+        console.log(`Item ${action}ed successfully`);
+      } else {
+        const error = await res.json();
+        console.error("Error updating cart:", error);
+      }
+    }
+
+    document.querySelectorAll(".plus").forEach(btn => {
+      btn.addEventListener("click", () => updateCart(parseInt(btn.dataset.id), "add"));
+    });
+
+    document.querySelectorAll(".minus").forEach(btn => {
+      btn.addEventListener("click", () => updateCart(parseInt(btn.dataset.id), "remove"));
+    });
+  </script>
 </body> 
 </html> 
