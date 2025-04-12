@@ -67,3 +67,11 @@ input{
 label{
     margin-bottom: 0;
 }
+
+.admin{
+    float:right;
+    position:absolute;
+    bottom:10;
+    right:10;
+    font-size:30px;
+}
