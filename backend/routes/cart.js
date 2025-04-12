@@ -2,7 +2,7 @@ import express from "express";
 import supabase from "../config/supabase.js";
 const router = express.Router();
 
-// Add to cart 1 
+// Add to cart
 router.post("/add", async (req, res) => {
   const { session_id, product_id } = req.body;
 
@@ -78,7 +78,7 @@ router.post("/remove", async (req, res) => {
   }
 });
 
-// Get cart by session ID with product name and price only
+// Get cart with product info
 router.get("/:session_id", async (req, res) => {
   const { session_id } = req.params;
 
@@ -97,6 +97,136 @@ router.get("/:session_id", async (req, res) => {
   }));
 
   res.json(cartWithDetails);
+});
+
+// Link phone to session (preserve points)
+router.post("/link-phone", async (req, res) => {
+  const { session_id, phone } = req.body;
+
+  const { data: existingCustomer, error: fetchError } = await supabase
+    .from("customer")
+    .select("*")
+    .eq("phone", phone)
+    .maybeSingle();
+
+  if (fetchError) return res.status(500).json({ error: fetchError.message });
+
+  if (!existingCustomer) {
+    const { error: insertError } = await supabase
+      .from("customer")
+      .insert([{ phone, reward_points: 0 }]);
+    if (insertError) return res.status(500).json({ error: insertError.message });
+  }
+
+  res.json({ message: "Phone linked (or already exists)" });
+});
+
+// Get customer reward points
+router.get("/customer/:phone", async (req, res) => {
+  const { phone } = req.params;
+
+  const { data, error } = await supabase
+    .from("customer")
+    .select("reward_points")
+    .eq("phone", phone)
+    .maybeSingle();
+
+  if (error || !data) return res.status(404).json({ error: "Customer not found" });
+
+  res.json(data); // { reward_points: number }
+});
+
+// Checkout with stock validation and total_amount tracking
+router.post("/checkout", async (req, res) => {
+  const { session_id, phone, card_number, cvv, exp_date, redeem_points = 0 } = req.body;
+
+  const { data: cartItems, error: cartError } = await supabase
+    .from("cart")
+    .select("product_id, product_quantity, product(name, price, stock_quantity)")
+    .eq("session_id", session_id);
+
+  if (cartError) return res.status(500).json({ error: cartError.message });
+
+  let total = 0;
+
+  // Check if enough stock exists for each product
+  for (const item of cartItems) {
+    if (item.product_quantity > item.product.stock_quantity) {
+      return res.status(400).json({
+        error: `Not enough stock for ${item.product.name}. Only ${item.product.stock_quantity} left.`,
+      });
+    }
+    total += item.product_quantity * item.product.price;
+  }
+
+  const pointsEarned = Math.floor(total);
+  const redeemableDollars = Math.floor(redeem_points / 100); // 100 points = $1
+  const finalTotal = Math.max(total - redeemableDollars, 0);
+
+  // Store card info (already formatted from frontend)
+  const { error: paymentError } = await supabase
+    .from("payment")
+    .upsert([{
+      card_number,
+      name: "Customer",
+      cvv,
+      exp_date, // ✅ correct format
+    }], { onConflict: "card_number" });
+
+  if (paymentError) return res.status(500).json({ error: paymentError.message });
+
+  // Insert order with total
+  const { error: orderError } = await supabase
+    .from("order")
+    .insert([{
+      phone,
+      session_id,
+      total_amount: finalTotal,
+    }]);
+
+  if (orderError) return res.status(500).json({ error: orderError.message });
+
+  // Update customer points
+  const { data: customer, error: customerError } = await supabase
+    .from("customer")
+    .select("reward_points")
+    .eq("phone", phone)
+    .maybeSingle();
+
+  if (customerError) return res.status(500).json({ error: customerError.message });
+
+  const newPoints = (customer?.reward_points || 0) - (redeemableDollars * 100) + pointsEarned;
+
+  const { error: pointsError } = await supabase
+    .from("customer")
+    .upsert({ phone, reward_points: newPoints }, { onConflict: "phone" });
+
+  if (pointsError) return res.status(500).json({ error: pointsError.message });
+
+  // Update stock
+  for (const item of cartItems) {
+    const newStock = item.product.stock_quantity - item.product_quantity;
+    const { error: stockError } = await supabase
+      .from("product")
+      .update({ stock_quantity: newStock })
+      .eq("product_id", item.product_id);
+
+    if (stockError) return res.status(500).json({ error: stockError.message });
+  }
+
+  // Clear cart
+  const { error: clearError } = await supabase
+    .from("cart")
+    .delete()
+    .eq("session_id", session_id);
+
+  if (clearError) return res.status(500).json({ error: clearError.message });
+
+  res.json({
+    message: "Checkout complete",
+    final_total: finalTotal.toFixed(2),
+    points_earned: pointsEarned,
+  });
 });
 
 export default router;
