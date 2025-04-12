@@ -1,26 +1,27 @@
-<html> 
-<head> 
-<title>Panther's Games</title> 
-<link rel="stylesheet" type="text/css" media="all" href="store.css">
-<link rel="icon" type="image/x-icon" href="img/paw-print.png">
-<style>
-    .expo{
-        width:45%;
-        height:auto;
-        text-align: center;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Panther's Games</title>
+  <link rel="stylesheet" href="store.css">
+  <link rel="icon" type="image/x-icon" href="img/paw-print.png">
+  <style>
+    .expo {
+      width: 45%;
+      height: auto;
+      text-align: center;
     }
 
-    .expo input{
-        margin-left: 38%;
-        margin-right: 72%;
-        width:25%;
-        margin-top: 1;
-        margin-bottom: 5%;
+    .expo input {
+      margin-left: 38%;
+      margin-right: 72%;
+      width: 25%;
+      margin-top: 1;
+      margin-bottom: 5%;
     }
 
-    hr{
-        color:rgb(119, 136, 153);
-        width:80%;
+    hr {
+      color: rgb(119, 136, 153);
+      width: 80%;
     }
 
     #cart-container {
@@ -38,12 +39,6 @@
       justify-content: space-between;
       padding: 20px 0;
       border-bottom: 1px solid #ccc;
-    }
-
-    .cart-item img {
-      width: 100px;
-      height: auto;
-      border-radius: 10px;
     }
 
     .cart-details {
@@ -80,6 +75,12 @@
       font-weight: bold;
     }
 
+    #points-earned {
+      font-size: 16px;
+      color: green;
+      margin-top: 10px;
+    }
+
     #checkout-btn {
       padding: 12px 24px;
       background: #4CAF50;
@@ -93,9 +94,19 @@
     #checkout-btn:hover {
       background: #45a049;
     }
-</style>
-</head> 
-<body> 
+
+    #redeem-section button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 6px 12px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
 
   <div id="banner">
     <div id="header">
@@ -105,94 +116,179 @@
       <h1>Cart</h1>
     </div>
     <div id="userInfo">
-      Enter Phone Number
-      <img src="img/phone.png" alt="Phone" style="width:50px; margin:0"><br><br><br>
+      <label for="phoneNum">Enter Phone Number</label>
+      <input type="text" id="phoneNum" name="phoneNum" placeholder="123-123-1234" maxlength="12">
+      <img id="phoneSubmit" src="img/phone.png" alt="Phone" style="width:50px; margin:0; cursor:pointer;"><br><br><br>
       <a href="main.html">Back to Main</a>
     </div>
   </div>
 
   <div id="cart-container">
-    <div id="cart-items">
-      <!-- Items will be rendered here 1-->
-    </div>
+    <div id="cart-items"></div>
     <div id="cart-summary">
-      <div id="total-price">Total: $0.00</div>
-      <button id="checkout-btn">Checkout</button>
+      <div>
+        <div id="total-price">Total: $0.00</div>
+        <div id="points-earned"></div>
+        <div id="redeem-section"></div>
+      </div>
+      <button id="checkout-btn" disabled>Checkout</button>
     </div>
   </div>
 
-    <div id="samples">
-        <div class="expo">
-            <h2>Enter Payment Information</h2>
+  <div id="samples">
+    <div class="expo">
+      <h2>Enter Payment Information</h2>
 
-            <label for="cardNumber">Card Number</label><br>
-            <input type="text" id="cardNumber" name="cardNumber" placeholder="1234-5678-1234-5678" pattern="\d{16}" maxlength="16" required>
+      <label for="cardNumber">Card Number</label><br>
+      <input type="text" id="cardNumber" name="cardNumber" placeholder="1234567812345678" maxlength="16" pattern="\d{16}" required>
 
-            <label for="CVV">CVV</label><br>
-            <input type="text" id="CVV" name="CVV" placeholder="123" maxlength="3" required>
+      <label for="CVV">CVV</label><br>
+      <input type="text" id="CVV" name="CVV" placeholder="123" maxlength="3" pattern="\d{3}" required>
 
-            <label for="expDate">Exp. Date</label><br>
-            <input type="text" id="expDate" name="expDate" pattern="^(0[1-9]|1[0-2])\/\d{2}$" placeholder="MM/YY" title="Enter a valid date in MM/YY format" maxlength="5" required>
-
-            <input type="submit" value="Submit">
-        </div>
+      <label for="expDate">Exp. Date</label><br>
+      <input type="text" id="expDate" name="expDate" placeholder="MM/YY" maxlength="5" pattern="(0[1-9]|1[0-2])/\d{2}" required>
     </div>
+  </div>
 
-   
-    
-    <script>
-      async function fetchCart() {
-        const sessionId = localStorage.getItem("session_id");
-        const res = await fetch(`http://localhost:4000/api/cart/${sessionId}`);
-      
-        if (!res.ok) {
-          const error = await res.json();
-          console.error("Failed to load cart:", error);
-          return;
-        }
-      
-        const cart = await res.json();
-        const container = document.getElementById("cart-items");
-        container.innerHTML = "";
-      
-        let total = 0;
-      
-        for (let item of cart) {
-          const itemTotal = item.product_quantity * item.price;
-          total += itemTotal;
-      
-          const div = document.createElement("div");
-          div.className = "cart-item";
-          div.innerHTML = `
-            <div class="cart-details">
-              <h3>${item.name}</h3>
-              <p>Price: $${item.price.toFixed(2)}</p>
-              <p>Quantity: ${item.product_quantity}</p>
-            </div>
-            <div class="cart-actions">
-              <button class="remove-btn" data-id="${item.product_id}">Remove</button>
-            </div>
-          `;
-          container.appendChild(div);
-        }
-      
-        document.getElementById("total-price").textContent = `Total: $${total.toFixed(2)}`;
-      
-        document.querySelectorAll(".remove-btn").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const id = btn.dataset.id;
-            await fetch("http://localhost:4000/api/cart/remove", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ session_id: sessionId, product_id: parseInt(id) }),
-            });
-            fetchCart();
-          });
-        });
+  <script>
+    const sessionId = localStorage.getItem("session_id") || crypto.randomUUID();
+    localStorage.setItem("session_id", sessionId);
+    let userPoints = 0;
+    let totalAmount = 0;
+    let redeeming = false;
+
+    async function fetchCart() {
+      const res = await fetch(`http://localhost:4000/api/cart/${sessionId}`);
+      const cart = await res.json();
+      const container = document.getElementById("cart-items");
+      container.innerHTML = "";
+
+      totalAmount = 0;
+
+      for (let item of cart) {
+        const itemTotal = item.product_quantity * item.price;
+        totalAmount += itemTotal;
+
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+          <div class="cart-details">
+            <h3>${item.name}</h3>
+            <p>Price: $${item.price.toFixed(2)}</p>
+            <p>Quantity: ${item.product_quantity}</p>
+          </div>
+          <div class="cart-actions">
+            <button class="remove-btn" data-id="${item.product_id}">Remove</button>
+          </div>
+        `;
+        container.appendChild(div);
       }
-      
+
+      updatePriceDisplay();
+
+      document.querySelectorAll(".remove-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.id;
+          await fetch("http://localhost:4000/api/cart/remove", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, product_id: parseInt(id) }),
+          });
+          fetchCart();
+        });
+      });
+    }
+
+    function updatePriceDisplay() {
+      const finalAmount = redeeming ? totalAmount - Math.floor(userPoints / 100) : totalAmount;
+      document.getElementById("total-price").textContent = `Total: $${finalAmount.toFixed(2)}`;
+      document.getElementById("points-earned").textContent = `You will earn ${Math.floor(totalAmount)} points with this purchase.`;
+    }
+
+    fetchCart();
+
+    document.getElementById("phoneSubmit").addEventListener("click", async () => {
+      const phone = document.getElementById("phoneNum").value;
+      localStorage.setItem("user_phone", phone);
+
+      await fetch("http://localhost:4000/api/cart/link-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, phone }),
+      });
+
+      const res = await fetch(`http://localhost:4000/api/cart/customer/${phone}`);
+      const data = await res.json();
+      userPoints = data.reward_points || 0;
+
+      const redeemDiv = document.getElementById("redeem-section");
+      redeemDiv.innerHTML = "";
+      if (userPoints >= 100) {
+        const btn = document.createElement("button");
+        btn.textContent = `Apply ${userPoints} points ($${Math.floor(userPoints / 100)} off)`;
+        btn.addEventListener("click", () => {
+          redeeming = true;
+          updatePriceDisplay();
+          alert(`$${Math.floor(userPoints / 100)} will be applied at checkout.`);
+        });
+        redeemDiv.appendChild(btn);
+      }
+    });
+
+    ["cardNumber", "CVV", "expDate"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", checkFormValid);
+    });
+
+    function checkFormValid() {
+      const card = document.getElementById("cardNumber").value;
+      const cvv = document.getElementById("CVV").value;
+      const exp = document.getElementById("expDate").value;
+      const valid = card.length === 16 && /^\d+$/.test(card) &&
+                    cvv.length === 3 && /^\d+$/.test(cvv) &&
+                    /^\d{2}\/\d{2}$/.test(exp);
+      document.getElementById("checkout-btn").disabled = !valid;
+    }
+
+    document.getElementById("checkout-btn").addEventListener("click", async () => {
+      const phone = localStorage.getItem("user_phone");
+      const card_number = document.getElementById("cardNumber").value;
+      const cvv = document.getElementById("CVV").value;
+      const rawExp = document.getElementById("expDate").value;
+      const [month, year] = rawExp.split("/");
+      if (!month || !year) {
+        alert("Please enter a valid expiration date.");
+        return;
+      }
+
+
+      const exp_date = `20${year}-${month}-01`; // Correct string interpolation using backticks
+      const redeem_points = redeeming ? userPoints : 0;
+
+      const res = await fetch("http://localhost:4000/api/cart/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          phone,
+          card_number,
+          cvv,
+          exp_date,
+          redeem_points
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert("Error: " + result.error);
+        return;
+      }
+
+      alert("Checkout complete! Order saved, payment stored, and stock updated.");
+      localStorage.removeItem("redeem_points");
+      redeeming = false;
       fetchCart();
-      
-        </script>
-</body> 
-</html> 
+    });
+  </script>
+</body>
+</html>
