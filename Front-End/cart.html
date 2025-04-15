@@ -11,6 +11,7 @@
       text-align: center;
     }
 
+
     .expo input {
       margin-left: 38%;
       margin-right: 72%;
@@ -19,10 +20,12 @@
       margin-bottom: 5%;
     }
 
+
     hr {
       color: rgb(119, 136, 153);
       width: 80%;
     }
+
 
     #cart-container {
       max-width: 900px;
@@ -33,6 +36,7 @@
       border-radius: 12px;
     }
 
+
     .cart-item {
       display: flex;
       align-items: center;
@@ -41,18 +45,22 @@
       border-bottom: 1px solid #ccc;
     }
 
+
     .cart-details {
       flex-grow: 1;
       padding: 0 20px;
     }
 
+
     .cart-details h3 {
       margin: 0 0 10px;
     }
 
+
     .cart-actions {
       text-align: right;
     }
+
 
     .remove-btn {
       background: none;
@@ -62,6 +70,7 @@
       cursor: pointer;
     }
 
+
     #cart-summary {
       display: flex;
       justify-content: space-between;
@@ -70,16 +79,19 @@
       border-top: 2px solid #ccc;
     }
 
+
     #total-price {
       font-size: 20px;
       font-weight: bold;
     }
+
 
     #points-earned {
       font-size: 16px;
       color: green;
       margin-top: 10px;
     }
+
 
     #checkout-btn {
       padding: 12px 24px;
@@ -91,9 +103,11 @@
       cursor: pointer;
     }
 
+
     #checkout-btn:hover {
       background: #45a049;
     }
+
 
     #redeem-section button {
       background: #1976d2;
@@ -108,9 +122,10 @@
 </head>
 <body>
 
+
   <div id="banner">
     <div id="header">
-        <h1>Panther's Games</h1> 
+        <h1>Panther's Games</h1>
         <a href = "main.html"><h3><img src="img/back-arrow.png" alt="Arrow">Back to Main Page</h3></a>
     </div>
     <div id="userInfo">
@@ -122,6 +137,7 @@
 </div>
 </div>
 <div id="title">Cart</div>
+
 
   <div id="cart-container">
     <div id="cart-items"></div>
@@ -135,20 +151,25 @@
     </div>
   </div>
 
+
   <div id="samples">
     <div class="expo">
       <h2>Enter Payment Information</h2>
 
+
       <label for="cardNumber">Card Number</label><br>
       <input type="text" id="cardNumber" name="cardNumber" placeholder="1234567812345678" maxlength="16" pattern="\d{16}" required>
 
+
       <label for="CVV">CVV</label><br>
       <input type="text" id="CVV" name="CVV" placeholder="123" maxlength="3" pattern="\d{3}" required>
+
 
       <label for="expDate">Exp. Date</label><br>
       <input type="text" id="expDate" name="expDate" placeholder="MM/YY" maxlength="5" pattern="(0[1-9]|1[0-2])/\d{2}" required>
     </div>
   </div>
+
 
   <script>
     const sessionId = localStorage.getItem("session_id") || crypto.randomUUID();
@@ -157,17 +178,21 @@
     let totalAmount = 0;
     let redeeming = false;
 
+
     async function fetchCart() {
       const res = await fetch(`http://localhost:4000/api/cart/${sessionId}`);
       const cart = await res.json();
       const container = document.getElementById("cart-items");
       container.innerHTML = "";
 
+
       totalAmount = 0;
+
 
       for (let item of cart) {
         const itemTotal = item.product_quantity * item.price;
         totalAmount += itemTotal;
+
 
         const div = document.createElement("div");
         div.className = "cart-item";
@@ -184,7 +209,9 @@
         container.appendChild(div);
       }
 
+
       updatePriceDisplay();
+
 
       document.querySelectorAll(".remove-btn").forEach((btn) => {
         btn.addEventListener("click", async () => {
@@ -199,17 +226,21 @@
       });
     }
 
+
     function updatePriceDisplay() {
       const finalAmount = redeeming ? totalAmount - Math.floor(userPoints / 100) : totalAmount;
       document.getElementById("total-price").textContent = `Total: $${finalAmount.toFixed(2)}`;
       document.getElementById("points-earned").textContent = `You will earn ${Math.floor(totalAmount)} points with this purchase.`;
     }
 
+
     fetchCart();
+
 
     document.getElementById("phoneSubmit").addEventListener("click", async () => {
       const phone = document.getElementById("phoneNum").value;
       localStorage.setItem("user_phone", phone);
+
 
       await fetch("http://localhost:4000/api/cart/link-phone", {
         method: "POST",
@@ -217,9 +248,11 @@
         body: JSON.stringify({ session_id: sessionId, phone }),
       });
 
+
       const res = await fetch(`http://localhost:4000/api/cart/customer/${phone}`);
       const data = await res.json();
       userPoints = data.reward_points || 0;
+
 
       const redeemDiv = document.getElementById("redeem-section");
       redeemDiv.innerHTML = "";
@@ -235,9 +268,11 @@
       }
     });
 
+
     ["cardNumber", "CVV", "expDate"].forEach((id) => {
       document.getElementById(id).addEventListener("input", checkFormValid);
     });
+
 
     function checkFormValid() {
       const card = document.getElementById("cardNumber").value;
@@ -248,6 +283,7 @@
                     /^\d{2}\/\d{2}$/.test(exp);
       document.getElementById("checkout-btn").disabled = !valid;
     }
+
 
     document.getElementById("checkout-btn").addEventListener("click", async () => {
       const phone = localStorage.getItem("user_phone");
@@ -261,8 +297,11 @@
       }
 
 
+
+
       const exp_date = `20${year}-${month}-01`; // Correct string interpolation using backticks
       const redeem_points = redeeming ? userPoints : 0;
+
 
       const res = await fetch("http://localhost:4000/api/cart/checkout", {
         method: "POST",
@@ -277,12 +316,15 @@
         }),
       });
 
+
       const result = await res.json();
+
 
       if (!res.ok) {
         alert("Error: " + result.error);
         return;
       }
+
 
       alert("Checkout complete! Order saved, payment stored, and stock updated.");
       localStorage.removeItem("redeem_points");
@@ -292,3 +334,6 @@
   </script>
 </body>
 </html>
+
+
+
