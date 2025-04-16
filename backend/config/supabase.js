@@ -1,9 +1,10 @@
-import 'dotenv/config';
-import { createClient } from '@supabase/supabase-js';
+import 'dotenv/config'; // loads .env file
 
-//retrieves url and key from .env
-const supabaseUrl = process.env.SUPABASE_URL; 
-const supabaseKey = process.env.SUPABASE_KEY; 
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { createClient } from '@supabase/supabase-js'; // lets us talk to Supabase
 
-export default supabase;
+const supabaseUrl = process.env.SUPABASE_URL; // our Supabase project URL
+const supabaseKey = process.env.SUPABASE_KEY; // our Supabase anon key
+
+const supabase = createClient(supabaseUrl, supabaseKey); // sets up the connection
+
+export default supabase; // now we can use it in other files

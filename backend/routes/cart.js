@@ -2,10 +2,11 @@ import express from "express";
 import supabase from "../config/supabase.js";
 const router = express.Router();
 
-// Add to cart
+// Adds product to cart. If it's already there, increase quantity
 router.post("/add", async (req, res) => {
   const { session_id, product_id } = req.body;
 
+  // Check if item already exists in cart
   const { data: existingItem, error: fetchError } = await supabase
     .from("cart")
     .select("*")
@@ -15,6 +16,7 @@ router.post("/add", async (req, res) => {
 
   if (fetchError) return res.status(500).json({ error: fetchError.message });
 
+  // If it’s already in cart, just increment quantity
   if (existingItem) {
     const { data, error } = await supabase
       .from("cart")
@@ -23,10 +25,10 @@ router.post("/add", async (req, res) => {
       .eq("product_id", product_id);
 
     if (error) return res.status(500).json({ error: error.message });
-
     return res.json({ message: "Cart updated", data });
   }
 
+  // If not in cart, insert as new item
   const { data, error } = await supabase.from("cart").insert([
     {
       session_id,
@@ -36,11 +38,10 @@ router.post("/add", async (req, res) => {
   ]);
 
   if (error) return res.status(500).json({ error: error.message });
-
   res.json({ message: "Item added to cart", data });
 });
 
-// Remove from cart
+// Removes product from cart or decreases quantity
 router.post("/remove", async (req, res) => {
   const { session_id, product_id } = req.body;
 
@@ -52,11 +53,9 @@ router.post("/remove", async (req, res) => {
     .single();
 
   if (fetchError) return res.status(500).json({ error: fetchError.message });
+  if (!existingCartItem) return res.status(404).json({ error: "Item not found in cart" });
 
-  if (!existingCartItem) {
-    return res.status(404).json({ error: "Item not found in cart" });
-  }
-
+  // If there's more than 1, just lower the quantity
   if (existingCartItem.product_quantity > 1) {
     const { error: updateError } = await supabase
       .from("cart")
@@ -67,6 +66,7 @@ router.post("/remove", async (req, res) => {
     if (updateError) return res.status(500).json({ error: updateError.message });
     return res.status(200).json({ message: "Quantity decreased" });
   } else {
+    // If only 1 left, remove the product from cart
     const { error: deleteError } = await supabase
       .from("cart")
       .delete()
@@ -78,10 +78,11 @@ router.post("/remove", async (req, res) => {
   }
 });
 
-// Get cart with product info
+// Fetches all products in user’s cart
 router.get("/:session_id", async (req, res) => {
   const { session_id } = req.params;
 
+  // Join cart with product table to get product details
   const { data, error } = await supabase
     .from("cart")
     .select("product_id, product_quantity, product(name, price)")
@@ -89,6 +90,7 @@ router.get("/:session_id", async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
+  // Cleaned up cart data to send to frontend
   const cartWithDetails = data.map(item => ({
     product_id: item.product_id,
     product_quantity: item.product_quantity,
@@ -99,10 +101,11 @@ router.get("/:session_id", async (req, res) => {
   res.json(cartWithDetails);
 });
 
-// Link phone to session (preserve points)
+// Associates a phone number to a session for loyalty points
 router.post("/link-phone", async (req, res) => {
   const { session_id, phone } = req.body;
 
+  // Check if phone already exists in customer table
   const { data: existingCustomer, error: fetchError } = await supabase
     .from("customer")
     .select("*")
@@ -111,17 +114,19 @@ router.post("/link-phone", async (req, res) => {
 
   if (fetchError) return res.status(500).json({ error: fetchError.message });
 
+  // If phone not found, add new customer with 0 points
   if (!existingCustomer) {
     const { error: insertError } = await supabase
       .from("customer")
       .insert([{ phone, reward_points: 0 }]);
+
     if (insertError) return res.status(500).json({ error: insertError.message });
   }
 
   res.json({ message: "Phone linked (or already exists)" });
 });
 
-// Get customer reward points
+// Gets current reward points for a customer
 router.get("/customer/:phone", async (req, res) => {
   const { phone } = req.params;
 
@@ -133,23 +138,26 @@ router.get("/customer/:phone", async (req, res) => {
 
   if (error || !data) return res.status(404).json({ error: "Customer not found" });
 
-  res.json(data); // { reward_points: number }
+  res.json(data);
 });
 
-// Checkout with stock validation and total_amount tracking
+// Checkout route - handles payment, updates stock, calculates points
 router.post("/checkout", async (req, res) => {
-  const { session_id, phone, card_number, cvv, exp_date, redeem_points = 0 } = req.body;
+  const { session_id, phone, name, card_number, cvv, exp_date, redeem_points = 0 } = req.body;
 
+  // Get all cart items with product info
   const { data: cartItems, error: cartError } = await supabase
     .from("cart")
     .select("product_id, product_quantity, product(name, price, stock_quantity)")
     .eq("session_id", session_id);
 
   if (cartError) return res.status(500).json({ error: cartError.message });
+  if (!cartItems || cartItems.length === 0)
+    return res.status(400).json({ error: "Cart is empty. Cannot checkout." });
 
   let total = 0;
 
-  // Check if enough stock exists for each product
+  // Check stock and calculate total
   for (const item of cartItems) {
     if (item.product_quantity > item.product.stock_quantity) {
       return res.status(400).json({
@@ -160,33 +168,24 @@ router.post("/checkout", async (req, res) => {
   }
 
   const pointsEarned = Math.floor(total);
-  const redeemableDollars = Math.floor(redeem_points / 100); // 100 points = $1
+  const redeemableDollars = Math.floor(redeem_points / 100);
   const finalTotal = Math.max(total - redeemableDollars, 0);
 
-  // Store card info (already formatted from frontend)
+  // Save card info
   const { error: paymentError } = await supabase
     .from("payment")
-    .upsert([{
-      card_number,
-      name: "Customer",
-      cvv,
-      exp_date, // ✅ correct format
-    }], { onConflict: "card_number" });
+    .insert([{ card_number, name, cvv, exp_date }]);
 
   if (paymentError) return res.status(500).json({ error: paymentError.message });
 
-  // Insert order with total
+  // Save order details
   const { error: orderError } = await supabase
     .from("order")
-    .insert([{
-      phone,
-      session_id,
-      total_amount: finalTotal,
-    }]);
+    .insert([{ phone, session_id, total_amount: finalTotal }]);
 
   if (orderError) return res.status(500).json({ error: orderError.message });
 
-  // Update customer points
+  // Get current points, update with earned/redeemed
   const { data: customer, error: customerError } = await supabase
     .from("customer")
     .select("reward_points")
@@ -197,13 +196,14 @@ router.post("/checkout", async (req, res) => {
 
   const newPoints = (customer?.reward_points || 0) - (redeemableDollars * 100) + pointsEarned;
 
+  // Update customer with new points
   const { error: pointsError } = await supabase
     .from("customer")
     .upsert({ phone, reward_points: newPoints }, { onConflict: "phone" });
 
   if (pointsError) return res.status(500).json({ error: pointsError.message });
 
-  // Update stock
+  // Decrease stock for each product
   for (const item of cartItems) {
     const newStock = item.product.stock_quantity - item.product_quantity;
     const { error: stockError } = await supabase

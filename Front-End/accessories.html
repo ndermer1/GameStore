@@ -12,6 +12,7 @@
 </style>
 <body> 
 
+    <!-- banner and top bar for phone + cart -->
     <div id="banner">
         <div id="header">
             <h1>Panther's Games</h1> 
@@ -27,9 +28,10 @@
 
     <div id="title">Accessories</div>
 
+    <!-- product cards for playstation accessories -->
     <h1 style="clear:both; margin:0px;"><br><br><br>Playstation Controllers</h1>
-
     <div id="samples">
+        <!-- each controller has minus, image, and plus to update cart -->
         <div class="expo">
             <h2>White Controller</h2>
             <h3 id="price-11">$60.00</h3>
@@ -39,6 +41,7 @@
               <div><img src="img/plus.png" class="plus" data-id="11" style="cursor:pointer" /></div>
             </div>
         </div>
+        <!-- other playstation controllers -->
         <div class="expo">
             <h2>Blue Controller</h2>
             <h3 id="price-12">$60.00</h3>
@@ -68,8 +71,10 @@
         </div>
     </div>
 
+    <!-- xbox controller section -->
     <h1 style="clear:both; margin:0px;"><br>Xbox Controllers</h1>
     <div id="samples">
+        <!-- same structure as above -->
         <div class="expo">
             <h2>Black Controller</h2>
             <h3 id="price-22">$60.00</h3>
@@ -108,7 +113,7 @@
         </div>
     </div>
 
-<!-- Script 1 -->
+<!-- fetches latest price from backend -->
 <script>
     async function fetchAndUpdatePrice(productId) {
       const res = await fetch(`http://localhost:4000/api/products/${productId}`);
@@ -117,7 +122,8 @@
         document.getElementById(`price-${productId}`).textContent = `$${product.price.toFixed(2)}`;
       }
     }
-  
+
+    // runs when page loads
     window.onload = function () {
       const productIds = [11, 12, 13, 14, 21, 22, 23, 25];
       productIds.forEach(id => fetchAndUpdatePrice(id));
@@ -125,16 +131,18 @@
 </script>
 
 <script>
+    // unique session id for user's cart
     const sessionId = localStorage.getItem("session_id") || crypto.randomUUID();
     localStorage.setItem("session_id", sessionId);
 
-    //Fetch productName to display in alerts
+    // grabs product name to use in alert
     async function getProductName(productId) {
       const res = await fetch(`http://localhost:4000/api/products/${productId}`);
       const product = await res.json();
       return product.name;
     }
 
+    // updates cart when + or - is clicked
     async function updateCart(productId, action) {
       const endpoint = action === "add" ? "add" : "remove";
       const res = await fetch(`http://localhost:4000/api/cart/${endpoint}`, {
@@ -143,24 +151,22 @@
         body: JSON.stringify({ session_id: sessionId, product_id: productId }),
       });
 
-      //Name of Product
       const name = await getProductName(productId);
 
-      //Display alert of product movement from user
       if (res.ok) {
-        console.log(`Item ${action}ed successfully`);
         if(action=="add"){
           alert(name+" was added to cart.");
-        }else if(action=="remove"){
-          alert(name+ " was removed from cart.");
+        } else {
+          alert(name+" was removed from cart.");
         }
       } else {
         const error = await res.json();
         console.error("Error updating cart:", error);
-        alert("Your cart does not contain " + name +".");
+        alert("Your cart does not contain " + name + ".");
       }
     }
 
+    // hook up the buttons
     document.querySelectorAll(".plus").forEach(btn => {
       btn.addEventListener("click", () => updateCart(parseInt(btn.dataset.id), "add"));
     });
@@ -171,4 +177,4 @@
 </script>
 
 </body> 
-</html> 
+</html>

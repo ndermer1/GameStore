@@ -332,7 +332,7 @@
 </body> 
 
 <script>
-<<<<<<< HEAD
+  // Gets stock info from backend for a product and updates the HTML
   async function fetchAndUpdateStock(productId) {
     try {
       const res = await fetch(`http://localhost:4000/api/products/${productId}`);
@@ -346,12 +346,13 @@
     }
   }
 
+  // Called when admin hits plus or minus — updates stock
   async function updateStock(productId, delta) {
   try {
     const res = await fetch(`http://localhost:4000/api/products/${productId}/update-stock`, {
-      method: "POST", // ← had errors and change it from PATCH to POST
+      method: "POST", 
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ change: delta }) //  "change" not "delta"
+      body: JSON.stringify({ change: delta }) 
     });
 
     const result = await res.json();
@@ -359,7 +360,7 @@
     if (!res.ok) {
       alert(`Error: ${result.error}`);
     } else {
-      await fetchAndUpdateStock(productId);
+      await fetchAndUpdateStock(productId); // refreshes the stock count
     }
   } catch (err) {
     console.error("Failed to update stock:", err);
@@ -367,7 +368,7 @@
   }
 }
 
-
+  // Runs when admin page loads
   window.onload = () => {
     const productIds = [
     1, 2, 3, 4, 6, 7, 8, 9, 10,
@@ -376,9 +377,10 @@
     29, 30, 31, 32, 33
     ]; 
 
-
+    // Get initial stock numbers for all items
     productIds.forEach(id => fetchAndUpdateStock(id));
 
+    // Set up plus buttons
     document.querySelectorAll(".plus").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = parseInt(btn.dataset.id);
@@ -386,6 +388,7 @@
       });
     });
 
+    // Set up minus buttons
     document.querySelectorAll(".minus").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = parseInt(btn.dataset.id);
@@ -394,46 +397,4 @@
     });
   };
 </script>
-
-
-
-=======
-    async function fetchAndUpdateStock(productId) {
-      const res = await fetch(`http://localhost:4000/api/products/${productId}`);
-      const product = await res.json();
-      if (product.stock_quantity != null) {
-        document.getElementById(`stock_quantity-${productId}`).textContent = `${product.stock_quantity}`;
-      }
-    }
-
-    window.onload = function () {
-      const productIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40];
-      productIds.forEach(id => fetchAndUpdateStock(id));
-    };
-
-
-    //I'm still working on getting the stock to update. This code does not
-    //work at all so I'm just leaving it commented out for the time being.
-
-    // async function updateStock(productId, action) {
-    //     const endpoint = action === "add" ? "add" : "remove";
-    //     const res = await fetch(`http://localhost:4000/api/cart/${endpoint}`, {
-    //         method: "POST",
-    //         headers: { "Content-Type": "application/json" },
-    //         body: JSON.stringify({ session_id: sessionId, product_id: productId }),
-    //     });
-    // }
-
-    // document.querySelectorAll(".plus").forEach(btn => {
-    //     btn.addEventListener("click", () => updateStock(parseInt(btn.dataset.id), "add"));
-    // });
-
-    // document.querySelectorAll(".minus").forEach(btn => {
-    //     btn.addEventListener("click", () => updateStock(parseInt(btn.dataset.id), "remove"));
-    // });
-</script>
-
-
->>>>>>> b23e4278fe6ae534339a43eab2d25e87a0d9258f
 </html> 
