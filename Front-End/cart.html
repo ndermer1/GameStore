@@ -11,6 +11,7 @@
       text-align: center;
     }
 
+
     .expo input {
       margin-left: 38%;
       margin-right: 72%;
@@ -19,10 +20,12 @@
       margin-bottom: 5%;
     }
 
+
     hr {
       color: rgb(119, 136, 153);
       width: 80%;
     }
+
 
     #cart-container {
       max-width: 900px;
@@ -33,6 +36,7 @@
       border-radius: 12px;
     }
 
+
     .cart-item {
       display: flex;
       align-items: center;
@@ -41,18 +45,22 @@
       border-bottom: 1px solid #ccc;
     }
 
+
     .cart-details {
       flex-grow: 1;
       padding: 0 20px;
     }
 
+
     .cart-details h3 {
       margin: 0 0 10px;
     }
 
+
     .cart-actions {
       text-align: right;
     }
+
 
     .remove-btn {
       background: none;
@@ -62,6 +70,7 @@
       cursor: pointer;
     }
 
+
     #cart-summary {
       display: flex;
       justify-content: space-between;
@@ -70,16 +79,19 @@
       border-top: 2px solid #ccc;
     }
 
+
     #total-price {
       font-size: 20px;
       font-weight: bold;
     }
+
 
     #points-earned {
       font-size: 16px;
       color: green;
       margin-top: 10px;
     }
+
 
     #checkout-btn {
       padding: 12px 24px;
@@ -91,9 +103,11 @@
       cursor: pointer;
     }
 
+
     #checkout-btn:hover {
       background: #45a049;
     }
+
 
     #redeem-section button {
       background: #1976d2;
@@ -114,6 +128,7 @@
 </head>
 <body>
 
+
   <div id="banner">
     <div id="header">
         <h1>Panther's Games</h1> 
@@ -130,6 +145,7 @@
 
   <div id="title">Cart</div>
 
+
   <div id="cart-container">
     <div id="cart-items"></div>
     <div id="cart-summary">
@@ -141,6 +157,7 @@
       <button id="checkout-btn">Checkout</button>
     </div>
   </div>
+
 
   <div id="samples">
     <div class="expo">
@@ -155,6 +172,7 @@
       <input type="text" id="expDate" placeholder="MM/YY" maxlength="5">
     </div>
   </div>
+
 
   <script>
     
@@ -218,6 +236,7 @@
       document.getElementById("points-earned").textContent = `You will earn ${Math.floor(totalAmount)} points with this purchase.`;
     }
 
+
     fetchCart();
 
     // phone number submit - links loyalty account
@@ -232,11 +251,13 @@
 
       localStorage.setItem("user_phone", phone);
 
+
       await fetch("http://localhost:4000/api/cart/link-phone", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: sessionId, phone }),
       });
+
 
       const res = await fetch(`http://localhost:4000/api/cart/customer/${phone}`);
       const data = await res.json();
@@ -298,6 +319,7 @@
       const exp_date = `20${year}-${month}-01`;
       const redeem_points = redeeming ? userPoints : 0;
 
+
       const res = await fetch("http://localhost:4000/api/cart/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -312,7 +334,9 @@
         }),
       });
 
+
       const result = await res.json();
+
 
       if (!res.ok) {
         alert("Error: " + result.error);
