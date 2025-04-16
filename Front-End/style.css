@@ -74,4 +74,19 @@ label{
     bottom:10;
     right:10;
     font-size:30px;
+    background-color: rgba(109, 80, 135, 0.701);
+    border-radius: 5px;
+
+}
+
+.admin img{
+    width:50px;
+    position:relative;
+    top:5px;
+}
+
+.admin span{
+    position: relative;
+    bottom:7px;
+    left:3px;
 }
