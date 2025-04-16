@@ -171,10 +171,11 @@ router.post("/checkout", async (req, res) => {
   const redeemableDollars = Math.floor(redeem_points / 100);
   const finalTotal = Math.max(total - redeemableDollars, 0);
 
-  // Save card info
+  // Save card info & use upsert to allow use of same CC
   const { error: paymentError } = await supabase
     .from("payment")
-    .insert([{ card_number, name, cvv, exp_date }]);
+    .upsert([{ card_number, name, cvv, exp_date }],
+      {onConflict: "card_number"});
 
   if (paymentError) return res.status(500).json({ error: paymentError.message });
 
